@@ -1,19 +1,13 @@
 import Head from "next/head"
 
+import ReactMarkdown from "react-markdown"
+import gfm from "remark-gfm"
+
+import { getSlugs, getContent } from "../libs/md-parser"
+
 //define this to return the paths - list of slugs - your blog posts
 const getStaticPaths = async () => {
-  const paths = [
-    {
-      params: {
-        slug: "blog-post-1",
-      },
-    },
-    {
-      params: {
-        slug: "blog-post-2",
-      },
-    },
-  ]
+  const paths = getSlugs()
 
   return {
     paths,
@@ -27,19 +21,12 @@ type Params = {
 
 const getStaticProps = async ({ params }: { params: Params }) => {
   const slug = params.slug
-
-  let title = "Blog Post 1"
-  let description = "First Blog Post"
-  let content = "This is the First Blog Post"
-
-  if (slug === "blog-post-2") {
-    title = "Blog Post 2"
-    description = "Second Blog Post"
-    content = "This is the Second Blog Post"
-  }
+  const { frontmatter, content } = await getContent(slug)
+  const { title, description } = frontmatter
 
   return {
     props: {
+      slug,
       title,
       description,
       content,
@@ -64,7 +51,9 @@ const Slug = ({
         <meta property="description" content={description} />
       </Head>
       <main className="max-w-7xl mx-auto">
-        <div className="prose max-w-none">{content}</div>
+        <article className="prose prose-lg max-w-none">
+          <ReactMarkdown remarkPlugins={[gfm]}>{content}</ReactMarkdown>
+        </article>
       </main>
     </>
   )
